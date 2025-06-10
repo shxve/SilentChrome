@@ -1,8 +1,8 @@
-# Silent Chrome - Silently Install Web Store Extensions on Google Chrome on MacOS and Windows
+# Silent Chrome - Silently Install Extensions on Google Chrome on MacOS and Windows
 Author: AsaurusRex
 
 ## Purpose
-This is a project showcasing hows how to silently install Web Store extensions on Google Chrome on MacOS and Windows. See the blog posts on silently installing Web Store Extensions: https://medium.com/@marcusthebrody/silently-install-chrome-extensions-macos-version-becf164679c2 (for Part 1) and https://medium.com/@marcusthebrody/silently-install-macos-chrome-extensions-part-2-c9deab4216cd (for Part 2). For Windows, see https://syntax-err0r.github.io/Silently_Install_Chrome_Extension.html and part 2 https://syntax-err0r.github.io/Return_Of_The_Extension.html, all credit to Nicholas Murray (https://github.com/syntax-err0r). I just touched up the windows code a bit and added some safety checks for the 'ui' developer toggle and automatically calculate SID and user.
+This is a project showcasing hows how to silently install Web Store extensions on Google Chrome on MacOS and Windows. See the blog posts on silently installing Extensions: https://medium.com/@marcusthebrody/silently-install-chrome-extensions-macos-version-becf164679c2 (for Part 1) and https://medium.com/@marcusthebrody/silently-install-macos-chrome-extensions-part-2-c9deab4216cd (for Part 2). For Windows, see https://syntax-err0r.github.io/Silently_Install_Chrome_Extension.html and part 2 https://syntax-err0r.github.io/Return_Of_The_Extension.html, all credit to Nicholas Murray (https://github.com/syntax-err0r). I just touched up the windows code a bit and added some safety checks for the 'ui' developer toggle and automatically calculate SID and user.
 
 ## Requirements:
 This code is designed to run with Python3, but you might want to modify it depending on what your target MacOS or Windows system has. The Windows version does require pip installing pywin32 to calculate the SID.
