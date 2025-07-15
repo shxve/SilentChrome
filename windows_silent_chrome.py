@@ -4,6 +4,7 @@ from collections import OrderedDict
 import hashlib
 import os
 import win32security #for SID, need to pip install pywin32
+import win32api #for SID, need to pip install pywin32
 import datetime
 
 #https://github.com/Pica4x6/SecurePreferencesFile
@@ -123,12 +124,16 @@ def encode_to_install_time(date):
 
 def add_extension():
     #auto calculate current user and corresponding SID for you, but if targeting another user you will need to change this
-    desc = win32security.GetFileSecurity(".", win32security.OWNER_SECURITY_INFORMATION) 
-    sid_nonstr = desc.GetSecurityDescriptorOwner()
+    username = win32api.GetUserName()
 
-    # https://www.programcreek.com/python/example/71691/win32security.ConvertSidToStringSid
-    sid_orig = win32security.ConvertSidToStringSid(sid_nonstr)
-    list_sid = sid_orig.split("-")
+    # Look up the SID for the username
+    sid, domain, type = win32security.LookupAccountName(None, username)
+
+    # Convert the SID to a string representation
+    sid_string = win32security.ConvertSidToStringSid(sid)
+    print(f"Current user SID: {sid_string}")
+    
+    list_sid = str(sid_string).split("-")
     sid = ""
     for i in range(len(list_sid)):
         if i != len(list_sid) -1:
