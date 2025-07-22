@@ -1,4 +1,4 @@
-# Silent Chrome - Silently Install Extensions on Google Chrome on MacOS and Windows
+# Silent Chrome - Silently Install Extensions on Google Chrome on MacOS, Windows, and Linux
 Author: AsaurusRex
 
 ## Purpose
