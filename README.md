@@ -28,3 +28,4 @@ Write this in something outside of python for easier deployment.
 
 ## Credit
 Special thanks to Nicholas Murray for providing a lot of the code that makes this happen and getting me interested in this topic in the first place with his blogs. Especially thanks to him for providing and helping debug the windows code especially.
+Special thanks to Colby Morgan for helping with Linux differences in Chromium and giving a great tip on setting the location value to 4 in the json string.
