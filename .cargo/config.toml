@@ -1,2 +1,5 @@
 [build]
-rustflags = ["--remap-path-prefix=/home/kali=build"]
+rustflags = [
+    "--remap-path-prefix=/home/kali=build",
+    "--remap-path-prefix=/rustc/=build/",
+]
