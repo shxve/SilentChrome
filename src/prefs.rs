@@ -55,7 +55,20 @@ pub fn uninstall(prefs_path: &Path, ext_id: &str, seed: &[u8], device_id: &str) 
 
 /// List all extensions in the preferences file.
 pub fn list(prefs_path: &Path) -> io::Result<Vec<ExtInfo>> {
-    Ok(secpref_kit::prefs::list_extensions(&read_json(prefs_path)?))
+    let mut extensions = secpref_kit::prefs::list_extensions(&read_json(prefs_path)?);
+
+    for extension in &mut extensions {
+        if extension.path.is_empty() {
+            continue;
+        }
+
+        if let Ok(manifest) = secpref_kit::manifest::parse(Path::new(&extension.path)) {
+            extension.name = manifest.name;
+            extension.version = manifest.version;
+        }
+    }
+
+    Ok(extensions)
 }
 
 /// Verify all integrity values maintained for an extension.
