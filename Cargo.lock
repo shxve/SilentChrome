@@ -317,7 +317,7 @@ dependencies = [
 [[package]]
 name = "secpref-kit"
 version = "0.2.0-dev"
-source = "git+https://github.com/shxve/secpref-kit?rev=53b0980a9b3d80719d6af973eb30c90f33074c57#53b0980a9b3d80719d6af973eb30c90f33074c57"
+source = "git+https://github.com/shxve/secpref-kit?rev=23a8e7c163ccb1c774bdf3bcff5dbc97fcd9b15d#23a8e7c163ccb1c774bdf3bcff5dbc97fcd9b15d"
 dependencies = [
  "base64",
  "dunce",
