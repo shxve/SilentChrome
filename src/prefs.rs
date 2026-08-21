@@ -143,12 +143,8 @@ mod tests {
         let listed = list(&prefs_path).unwrap();
         assert_eq!(listed.len(), 1);
         assert_eq!(listed[0].name, "Convergence Fixture");
-        assert_eq!(
-            listed[0].path,
-            fs::canonicalize(extension.path())
-                .unwrap()
-                .to_string_lossy()
-        );
+        let (_, expected_path) = secpref_kit::canonical_extension_path(extension.path()).unwrap();
+        assert_eq!(listed[0].path, expected_path);
 
         uninstall(&prefs_path, &installed.extension_id, &seed, device_id).unwrap();
         assert!(list(&prefs_path).unwrap().is_empty());
