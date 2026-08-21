@@ -86,6 +86,7 @@ silent-chrome verify <extension-id>
 ```
 extension MAC:   PASS
 dev_mode MAC:    PASS
+account dev MAC: PASS
 super_mac:       PASS
 [+] all MACs valid
 ```
@@ -97,6 +98,7 @@ silent-chrome install <EXT_DIR> [OPTIONS]
   -b, --browser <chrome|edge|brave|chromium>   Target browser [default: chrome]
   -p, --profile <NAME>                         Profile name [default: Default]
       --pak-path <PATH>                         Override resources.pak path
+      --browser-path <PATH>                     Directory containing resources.pak
 
 silent-chrome uninstall <EXT_ID> [OPTIONS]
 silent-chrome list [OPTIONS]
@@ -128,7 +130,7 @@ If your extension's `manifest.json` contains a `key` field (base64-encoded publi
 
 **Extension doesn't load:**
 - Confirm the browser was fully killed before running `install`.
-- Run `silent-chrome verify <id>` — all three MACs should show PASS.
+- Run `silent-chrome verify <id>` — all four integrity checks should show PASS.
 - Check that the extension path in the preferences matches the actual directory.
 
 **"no 64-byte resource found":**

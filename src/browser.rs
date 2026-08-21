@@ -1,7 +1,5 @@
 use std::io;
-use std::path::PathBuf;
-
-use crate::crypto;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]
 pub enum Browser {
@@ -23,7 +21,10 @@ impl Browser {
 
     /// Default path to the preferences file for a given profile.
     pub fn prefs_path(&self, profile: &str) -> io::Result<PathBuf> {
-        Ok(self.user_data_dir()?.join(profile).join(self.prefs_filename()))
+        Ok(self
+            .user_data_dir()?
+            .join(profile)
+            .join(self.prefs_filename()))
     }
 
     /// Default path to `resources.pak` (adjacent to the browser binary).
@@ -36,7 +37,7 @@ impl Browser {
     /// - Chrome/Chromium: parse from `resources.pak` (varies per version)
     /// - Edge/Brave: 64 zero bytes
     /// - Linux: empty (vestigial protection)
-    pub fn seed(&self, pak_override: Option<&PathBuf>) -> io::Result<Vec<u8>> {
+    pub fn seed(&self, pak_override: Option<&Path>) -> io::Result<Vec<u8>> {
         if cfg!(target_os = "linux") {
             return Ok(Vec::new());
         }
@@ -45,10 +46,11 @@ impl Browser {
             Self::Edge | Self::Brave => Ok(vec![0u8; 64]),
             Self::Chrome | Self::Chromium => {
                 let pak = match pak_override {
-                    Some(p) => p.clone(),
+                    Some(p) => p.to_path_buf(),
                     None => self.pak_path()?,
                 };
-                crypto::extract_seed(&pak)
+                secpref_kit::extract_seed_from_pak(&pak)
+                    .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error.to_string()))
             }
         }
     }
@@ -157,10 +159,18 @@ impl Browser {
         #[cfg(target_os = "macos")]
         {
             let app_dir = match self {
-                Self::Chrome => "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/Current/Resources",
-                Self::Edge => "/Applications/Microsoft Edge.app/Contents/Frameworks/Microsoft Edge Framework.framework/Versions/Current/Resources",
-                Self::Brave => "/Applications/Brave Browser.app/Contents/Frameworks/Brave Browser Framework.framework/Versions/Current/Resources",
-                Self::Chromium => "/Applications/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions/Current/Resources",
+                Self::Chrome => {
+                    "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/Current/Resources"
+                }
+                Self::Edge => {
+                    "/Applications/Microsoft Edge.app/Contents/Frameworks/Microsoft Edge Framework.framework/Versions/Current/Resources"
+                }
+                Self::Brave => {
+                    "/Applications/Brave Browser.app/Contents/Frameworks/Brave Browser Framework.framework/Versions/Current/Resources"
+                }
+                Self::Chromium => {
+                    "/Applications/Chromium.app/Contents/Frameworks/Chromium Framework.framework/Versions/Current/Resources"
+                }
             };
             let path = PathBuf::from(app_dir);
             if path.exists() {

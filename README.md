@@ -1,31 +1,41 @@
-# Silent Chrome - Silently Install Extensions on Google Chrome on MacOS, Windows, and Linux
-Author: AsaurusRex
+# SilentChrome
 
-## Purpose
-This is a project showcasing hows how to silently install Web Store extensions on Google Chrome on MacOS and Windows. See the blog posts on silently installing Extensions: https://medium.com/@marcusthebrody/silently-install-chrome-extensions-macos-version-becf164679c2 (for Part 1) and https://medium.com/@marcusthebrody/silently-install-macos-chrome-extensions-part-2-c9deab4216cd (for Part 2). For Windows, see https://syntax-err0r.github.io/Silently_Install_Chrome_Extension.html and part 2 https://syntax-err0r.github.io/Return_Of_The_Extension.html, all credit to Nicholas Murray (https://github.com/syntax-err0r). I just touched up the windows code a bit and added some safety checks for the 'ui' developer toggle and automatically calculate SID and user. Credit to Colby Morgan for help with the Linux differences and setting location to 4.
+Cross-platform Chromium extension sideloader and integrity verifier. The CLI
+discovers browser profiles, selects each browser's Secure Preferences seed and
+device identity, then delegates the integrity model to
+[`secpref-kit`](https://github.com/shxve/secpref-kit).
 
-## Requirements:
-This code is designed to run with Python3, but you might want to modify it depending on what your target MacOS or Windows system has. The Windows version does require pip installing pywin32 to calculate the SID.
+## Architecture
 
-## Technique
-To run this technique:
+- `browser.rs` owns Chrome, Edge, Brave, and Chromium path/seed discovery.
+- `identity.rs` owns platform orchestration: Chromium-compatible machine SID
+  on Windows, Hardware UUID on macOS, and the empty Linux device ID.
+- `prefs.rs` owns preferences-file I/O and atomic replacement.
+- `secpref-kit` owns DataPack parsing, manifests, extension IDs, JSON
+  canonicalization, MACs, and preference mutations.
 
-1. Fill out the value for extension_path (for MacOS) or extpath (for Windows) under the add_extension() function in silent_chrome.py or hard code the extension ID (under the value random_ext_str) based on where the extension directory will be on disk. Aka /tmp/myextension.
+There is deliberately one implementation of the security-sensitive
+primitives. SilentChrome is a consumer, not a fork of them.
 
-2. Kill the currently running Google Chrome process/processes; e.g. use the command killall “Google Chrome” or tasklist /f /im chrome.exe.
+## Usage
 
-3. Run the silent_chrome.py script on target before Chrome is launched again. This will write in our entries into the Secure Preferences file, meaning the next time Chrome is loaded the extension will be loaded with developer mode turned on. You can optionally launch this yourself.
+```text
+silent-chrome install <EXT_DIR> [--browser chrome] [--profile Default]
+silent-chrome uninstall <EXT_ID> [--browser chrome] [--profile Default]
+silent-chrome list [--browser chrome] [--profile Default]
+silent-chrome verify <EXT_ID> [--browser chrome] [--profile Default]
+silent-chrome info [--browser chrome] [--profile Default]
+```
 
-As we can see, this is much simpler than the previous method. There are no extension repairs required nor multiple killings of Chrome. If you are having issues, you can always copy that first step from before, namely “Download your desired extension on a test/attacker controlled laptop. Navigate to the Secure Preferences file and carve out the desired json blob for your extension” — but make sure to replace first_install_time, last_update_time, and location fields with the values shown in the script.
+Use `--pak-path` to select a specific `resources.pak`, or `--browser-path` to
+select the directory containing it.
 
-## Future Works
+## Development
 
-Abuse existing extensions which will always exist, like Google Hangouts.
+```sh
+cargo fmt --all -- --check
+cargo clippy --all-targets -- -D warnings
+cargo test --all-targets
+```
 
-Defeat chrome://policies
-
-Write this in something outside of python for easier deployment.
-
-## Credit
-Special thanks to Nicholas Murray for providing a lot of the code that makes this happen and getting me interested in this topic in the first place with his blogs. Especially thanks to him for providing and helping debug the windows code especially.
-Special thanks to Colby Morgan for helping with Linux differences in Chromium and giving a great tip on setting the location value to 4 in the json string.
+Use only on systems you own or are explicitly authorized to test.

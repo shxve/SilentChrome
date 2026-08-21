@@ -4,10 +4,13 @@ use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
 
-use silent_chrome::{install, list, uninstall, verify, Browser};
+use silent_chrome::{Browser, install, list, uninstall, verify};
 
 #[derive(Parser)]
-#[command(name = "silent-chrome", about = "Chromium extension sideloader via Secure Preferences HMAC forging")]
+#[command(
+    name = "silent-chrome",
+    about = "Chromium extension sideloader via Secure Preferences HMAC forging"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -100,10 +103,7 @@ fn cmd_install(ext_dir: &Path, opts: &BrowserOpts) -> std::io::Result<()> {
     if !ext_dir.join("manifest.json").exists() {
         return Err(std::io::Error::new(
             std::io::ErrorKind::NotFound,
-            format!(
-                "no manifest.json in {}",
-                ext_dir.display()
-            ),
+            format!("no manifest.json in {}", ext_dir.display()),
         ));
     }
 
@@ -115,7 +115,7 @@ fn cmd_install(ext_dir: &Path, opts: &BrowserOpts) -> std::io::Result<()> {
         ));
     }
 
-    let seed = opts.browser.seed(opts.pak_path.as_ref())?;
+    let seed = browser_seed(opts)?;
     let device_id = silent_chrome::identity_device_id()?;
 
     println!("[*] browser:    {}", opts.browser);
@@ -136,7 +136,7 @@ fn cmd_install(ext_dir: &Path, opts: &BrowserOpts) -> std::io::Result<()> {
 
 fn cmd_uninstall(ext_id: &str, opts: &BrowserOpts) -> std::io::Result<()> {
     let prefs_path = opts.browser.prefs_path(&opts.profile)?;
-    let seed = opts.browser.seed(opts.pak_path.as_ref())?;
+    let seed = browser_seed(opts)?;
     let device_id = silent_chrome::identity_device_id()?;
 
     uninstall(&prefs_path, ext_id, &seed, &device_id)?;
@@ -174,7 +174,7 @@ fn cmd_list(opts: &BrowserOpts) -> std::io::Result<()> {
 
 fn cmd_info(opts: &BrowserOpts) -> std::io::Result<()> {
     let prefs_path = opts.browser.prefs_path(&opts.profile)?;
-    let seed = opts.browser.seed(opts.pak_path.as_ref())?;
+    let seed = browser_seed(opts)?;
     let device_id = silent_chrome::identity_device_id()?;
 
     println!("browser:    {}", opts.browser);
@@ -185,6 +185,11 @@ fn cmd_info(opts: &BrowserOpts) -> std::io::Result<()> {
     let pak_path = opts
         .pak_path
         .clone()
+        .or_else(|| {
+            opts.browser_path
+                .as_ref()
+                .map(|path| path.join("resources.pak"))
+        })
         .or_else(|| opts.browser.pak_path().ok());
     if let Some(ref pak) = pak_path {
         println!("pak:        {}", pak.display());
@@ -210,7 +215,7 @@ fn cmd_info(opts: &BrowserOpts) -> std::io::Result<()> {
 
 fn cmd_verify(ext_id: &str, opts: &BrowserOpts) -> std::io::Result<()> {
     let prefs_path = opts.browser.prefs_path(&opts.profile)?;
-    let seed = opts.browser.seed(opts.pak_path.as_ref())?;
+    let seed = browser_seed(opts)?;
     let device_id = silent_chrome::identity_device_id()?;
 
     let result = verify(&prefs_path, ext_id, &seed, &device_id)?;
@@ -219,13 +224,22 @@ fn cmd_verify(ext_id: &str, opts: &BrowserOpts) -> std::io::Result<()> {
 
     println!("extension MAC:   {}", check(result.ext_mac_valid));
     println!("dev_mode MAC:    {}", check(result.dev_mac_valid));
+    println!("account dev MAC: {}", check(result.account_dev_mac_valid));
     println!("super_mac:       {}", check(result.super_mac_valid));
 
-    if result.ext_mac_valid && result.dev_mac_valid && result.super_mac_valid {
+    if result.all_valid() {
         println!("[+] all MACs valid");
+        Ok(())
     } else {
-        println!("[-] MAC mismatch detected");
+        Err(std::io::Error::other("MAC mismatch detected"))
     }
+}
 
-    Ok(())
+fn browser_seed(opts: &BrowserOpts) -> std::io::Result<Vec<u8>> {
+    let pak_override = opts.pak_path.clone().or_else(|| {
+        opts.browser_path
+            .as_ref()
+            .map(|path| path.join("resources.pak"))
+    });
+    opts.browser.seed(pak_override.as_deref())
 }
